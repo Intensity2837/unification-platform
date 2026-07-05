@@ -9,9 +9,10 @@ export default function AllReportsPage() {
   const [isLoading, setIsLoading] = useState(true);
   
   // Sorting & Filtering State
-  const [sortField, setSortField] = useState<'createdAt' | 'name' | 'quizScore' | 'score' | 'grade'>('createdAt');
+  const [sortField, setSortField] = useState<'createdAt' | 'name' | 'className' | 'status' | 'quizScore' | 'score' | 'grade'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [classFilter, setClassFilter] = useState<string>('ALL');
   
   useEffect(() => {
     fetch('/api/reports')
@@ -44,19 +45,24 @@ export default function AllReportsPage() {
     }
   };
 
-  const handleSort = (field: 'createdAt' | 'name' | 'quizScore' | 'score' | 'grade') => {
+  const handleSort = (field: 'createdAt' | 'name' | 'className' | 'status' | 'quizScore' | 'score' | 'grade') => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
-      setSortOrder(field === 'name' || field === 'grade' ? 'asc' : 'desc');
+      setSortOrder(field === 'name' || field === 'grade' || field === 'className' || field === 'status' ? 'asc' : 'desc');
     }
   };
 
+  const uniqueClasses = Array.from(new Set(reports.map(r => r.class?.name).filter(Boolean)));
+
   const filteredReports = reports.filter(r => {
-    if (statusFilter === 'ALL') return true;
-    if (statusFilter === 'COMPLETED') return r.status === 'COMPLETED';
-    return r.status !== 'COMPLETED';
+    if (statusFilter !== 'ALL') {
+      if (statusFilter === 'COMPLETED' && r.status !== 'COMPLETED') return false;
+      if (statusFilter === 'IN_PROGRESS' && r.status === 'COMPLETED') return false;
+    }
+    if (classFilter !== 'ALL' && r.class?.name !== classFilter) return false;
+    return true;
   });
 
   const sortedReports = [...filteredReports].sort((a, b) => {
@@ -72,6 +78,12 @@ export default function AllReportsPage() {
     } else if (sortField === 'grade') {
       valA = a.evaluation?.grade ?? 'Z';
       valB = b.evaluation?.grade ?? 'Z';
+    } else if (sortField === 'className') {
+      valA = a.class?.name ?? '';
+      valB = b.class?.name ?? '';
+    } else if (sortField === 'status') {
+      valA = a.status ?? '';
+      valB = b.status ?? '';
     }
 
     if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
@@ -100,8 +112,21 @@ export default function AllReportsPage() {
         
         {/* Controls */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-            <span style={{ color: 'var(--text-muted)' }}>진행 상태 필터:</span>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ color: 'var(--text-muted)' }}>수업명 필터:</span>
+            <select 
+              className="glass-input" 
+              style={{ width: 'auto', padding: '8px 16px' }}
+              value={classFilter} 
+              onChange={(e) => setClassFilter(e.target.value)}
+            >
+              <option value="ALL">전체 수업</option>
+              {uniqueClasses.map((className: any) => (
+                <option key={className} value={className}>{className}</option>
+              ))}
+            </select>
+
+            <span style={{ color: 'var(--text-muted)', marginLeft: '1rem' }}>진행 상태 필터:</span>
             <select 
               className="glass-input" 
               style={{ width: 'auto', padding: '8px 16px' }}
@@ -129,8 +154,18 @@ export default function AllReportsPage() {
                 >
                   이름 (학번) {sortField === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                 </th>
-                <th style={{ padding: '1rem' }}>수업명</th>
-                <th style={{ padding: '1rem' }}>진행 단계</th>
+                <th 
+                  style={{ padding: '1rem', cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => handleSort('className')}
+                >
+                  수업명 {sortField === 'className' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
+                <th 
+                  style={{ padding: '1rem', cursor: 'pointer', userSelect: 'none' }}
+                  onClick={() => handleSort('status')}
+                >
+                  진행 단계 {sortField === 'status' && (sortOrder === 'asc' ? '↑' : '↓')}
+                </th>
                 <th 
                   style={{ padding: '1rem', cursor: 'pointer', userSelect: 'none' }}
                   onClick={() => handleSort('quizScore')}
@@ -217,3 +252,4 @@ export default function AllReportsPage() {
     </div>
   );
 }
+
