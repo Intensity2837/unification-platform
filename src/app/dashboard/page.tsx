@@ -16,6 +16,19 @@ export default async function DashboardPage() {
       where: { role: 'TEACHER', isApproved: false },
       select: { id: true, email: true, name: true, school: true, createdAt: true },
     });
+
+    const approvedTeachers = await prisma.user.findMany({
+      where: { role: 'TEACHER', isApproved: true },
+      select: { 
+        id: true, 
+        email: true, 
+        name: true, 
+        school: true, 
+        createdAt: true,
+        _count: { select: { classes: true } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
     
     const allClasses = await prisma.class.findMany({
       include: {
@@ -25,7 +38,7 @@ export default async function DashboardPage() {
       orderBy: { createdAt: 'desc' }
     });
     
-    return <AdminDashboard pendingTeachers={pendingTeachers} allClasses={allClasses} />;
+    return <AdminDashboard pendingTeachers={pendingTeachers} approvedTeachers={approvedTeachers} allClasses={allClasses} />;
   }
 
   if (session.role === 'TEACHER') {

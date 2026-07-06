@@ -6,7 +6,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recha
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6']; // 1점 ~ 5점 색상
 
-export default function AdminDashboard({ pendingTeachers, allClasses }: { pendingTeachers: any[], allClasses: any[] }) {
+export default function AdminDashboard({ pendingTeachers, approvedTeachers, allClasses }: { pendingTeachers: any[], approvedTeachers: any[], allClasses: any[] }) {
   const router = useRouter();
   
   const [reports, setReports] = useState<any[]>([]);
@@ -47,6 +47,24 @@ export default function AdminDashboard({ pendingTeachers, allClasses }: { pendin
     if (res.ok) {
       alert('반려되었습니다.');
       router.refresh();
+    }
+  };
+
+  const handleDeleteTeacher = async (id: string) => {
+    if (!confirm('정말 이 교사를 삭제하시겠습니까? 해당 교사가 개설한 수업과 학생들의 보고서 기록이 모두 연쇄적으로 삭제될 수 있습니다!')) {
+      return;
+    }
+    const res = await fetch('/api/admin/delete-teacher', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      alert('교사 계정이 삭제되었습니다.');
+      router.refresh();
+    } else {
+      const data = await res.json();
+      alert(data.error || '삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -213,6 +231,47 @@ export default function AdminDashboard({ pendingTeachers, allClasses }: { pendin
                   <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
                     <button className="glass-button" style={{ padding: '8px 16px' }} onClick={() => handleApprove(t.id)}>승인</button>
                     <button className="glass-button" style={{ padding: '8px 16px', background: 'var(--danger)' }} onClick={() => handleReject(t.id)}>반려</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
+        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>승인 완료된 교사 관리</h2>
+        
+        {approvedTeachers.length === 0 ? (
+          <p style={{ color: 'var(--text-muted)' }}>현재 활동 중인 교사가 없습니다.</p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ borderBottom: '2px solid var(--surface-glass-border)', textAlign: 'left' }}>
+                <th style={{ padding: '1rem' }}>이름</th>
+                <th style={{ padding: '1rem' }}>학교</th>
+                <th style={{ padding: '1rem' }}>이메일</th>
+                <th style={{ padding: '1rem' }}>가입 승인일</th>
+                <th style={{ padding: '1rem' }}>개설한 수업 수</th>
+                <th style={{ padding: '1rem' }}>관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {approvedTeachers.map((t) => (
+                <tr key={t.id} style={{ borderBottom: '1px solid var(--surface-glass-border)' }}>
+                  <td style={{ padding: '1rem', fontWeight: 'bold' }}>{t.name}</td>
+                  <td style={{ padding: '1rem' }}>{t.school}</td>
+                  <td style={{ padding: '1rem' }}>{t.email}</td>
+                  <td style={{ padding: '1rem' }}>{new Date(t.createdAt).toLocaleDateString()}</td>
+                  <td style={{ padding: '1rem', color: 'var(--primary)', fontWeight: 'bold' }}>{t._count?.classes || 0}개</td>
+                  <td style={{ padding: '1rem' }}>
+                    <button 
+                      className="glass-button" 
+                      style={{ padding: '6px 12px', background: 'var(--danger)', fontSize: '0.9rem' }} 
+                      onClick={() => handleDeleteTeacher(t.id)}
+                    >
+                      계정 삭제
+                    </button>
                   </td>
                 </tr>
               ))}
