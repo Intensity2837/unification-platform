@@ -9,7 +9,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await request.json();
+    const { id, keepData } = await request.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Missing teacher id' }, { status: 400 });
@@ -21,6 +21,19 @@ export async function POST(request: Request) {
 
     if (!teacher) {
       return NextResponse.json({ error: 'Teacher not found' }, { status: 404 });
+    }
+
+    if (keepData) {
+      // Soft delete: Change role to DELETED and anonymize/disable the account
+      await prisma.user.update({
+        where: { id },
+        data: {
+          role: 'DELETED',
+          isApproved: false,
+          password: 'DELETED_ACCOUNT', // Make it impossible to log in normally
+        }
+      });
+      return NextResponse.json({ success: true });
     }
 
     // Since onDelete: Cascade is not set in Prisma schema, we must delete manually from bottom to top.

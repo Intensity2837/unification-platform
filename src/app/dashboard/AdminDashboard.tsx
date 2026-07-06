@@ -51,16 +51,23 @@ export default function AdminDashboard({ pendingTeachers, approvedTeachers, allC
   };
 
   const handleDeleteTeacher = async (id: string) => {
-    if (!confirm('정말 이 교사를 삭제하시겠습니까? 해당 교사가 개설한 수업과 학생들의 보고서 기록이 모두 연쇄적으로 삭제될 수 있습니다!')) {
-      return;
-    }
+    const proceed = confirm('정말 이 교사 계정을 삭제(탈퇴) 처리하시겠습니까?');
+    if (!proceed) return;
+
+    const deleteData = confirm(
+      '해당 교사가 개설한 [수업]과 [학생 보고서 데이터]도 함께 모두 삭제하시겠습니까?\n\n' +
+      '[확인]을 누르면 교사와 학생 데이터가 모두 삭제되며, 복구할 수 없습니다.\n' +
+      '[취소]를 누르면 데이터는 보존되고 교사 계정만 탈퇴(비활성화) 처리됩니다.'
+    );
+
     const res = await fetch('/api/admin/delete-teacher', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ id, keepData: !deleteData }),
     });
+    
     if (res.ok) {
-      alert('교사 계정이 삭제되었습니다.');
+      alert(deleteData ? '교사와 관련된 모든 데이터가 삭제되었습니다.' : '교사 계정이 탈퇴 처리되었으며, 데이터는 보존되었습니다.');
       router.refresh();
     } else {
       const data = await res.json();
