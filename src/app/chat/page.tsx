@@ -374,10 +374,17 @@ function ChatContent() {
   };
 
   const submitSurvey = async () => {
+    if (!q1 || !q2 || !q3 || !q4) {
+      alert('설문 1번부터 4번까지 모든 객관식 문항에 응답해 주세요.');
+      return;
+    }
     if (!q5.trim()) {
       alert('설문 5번 문항(흥미로웠던 부분)을 작성해 주세요!');
       return;
     }
+
+    const confirmSubmit = confirm('설문에 응답하신 내용이 맞는지 다시 한 번 확인해주세요.\n선택하신 점수(1~5점)와 작성하신 답변이 정확합니까?\n\n[확인] 제출하기\n[취소] 다시 확인하기');
+    if (!confirmSubmit) return;
     
     setIsLoading(true);
 
@@ -1038,6 +1045,12 @@ function ChatContent() {
                   모든 과정이 끝났습니다. 최종 평가 보고서를 확인하기 전, 아래 설문에 참여해 주세요.
                 </p>
 
+                <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '1rem', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.3)', marginBottom: '2rem' }}>
+                  <p style={{ color: '#fca5a5', fontWeight: 'bold', margin: 0 }}>
+                    ⚠️ 주의사항: 객관식 문항의 가장 왼쪽은 '매우 그렇다(5점)'입니다. 점수를 잘못 체크하지 않도록 선지를 잘 확인해주세요!
+                  </p>
+                </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               {[
                 { label: '설문1. 나는 프로그램에 적극적이고 능동적으로 참여하였다.', state: q1, set: setQ1 },
@@ -1048,10 +1061,16 @@ function ChatContent() {
                 <div key={idx}>
                   <p style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>{q.label}</p>
                   <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    {['매우 그렇지 않다', '그렇지 않다', '보통이다', '그렇다', '매우 그렇다'].map((opt, i) => (
-                      <label key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', color: '#cbd5e1' }}>
-                        <input type="radio" name={`q${idx}`} value={i + 1} checked={q.state === i + 1} onChange={() => q.set(i + 1)} />
-                        {opt}
+                    {[
+                      { text: '매우 그렇다', val: 5 },
+                      { text: '그렇다', val: 4 },
+                      { text: '보통이다', val: 3 },
+                      { text: '그렇지 않다', val: 2 },
+                      { text: '매우 그렇지 않다', val: 1 }
+                    ].map((opt) => (
+                      <label key={opt.val} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', color: '#cbd5e1' }}>
+                        <input type="radio" name={`q${idx}`} value={opt.val} checked={q.state === opt.val} onChange={() => q.set(opt.val)} />
+                        {opt.text}
                       </label>
                     ))}
                   </div>
