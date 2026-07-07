@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import ReactMarkdown from 'react-markdown';
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6']; // 1점 ~ 5점 색상
 
@@ -411,11 +412,12 @@ export default function AdminDashboard({ pendingTeachers, approvedTeachers, allC
                   padding: '2rem', 
                   borderRadius: '12px', 
                   border: '1px solid rgba(139, 92, 246, 0.3)',
-                  whiteSpace: 'pre-wrap',
                   lineHeight: 1.6,
                   color: 'var(--text-main)'
                 }}>
-                  {aiSummary}
+                  <div className="markdown-body">
+                    <ReactMarkdown>{aiSummary}</ReactMarkdown>
+                  </div>
                 </div>
               )}
             </div>
