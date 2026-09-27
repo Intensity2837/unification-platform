@@ -1,3 +1,4 @@
+﻿export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
@@ -55,5 +56,6 @@ export default async function DashboardPage() {
     return <TeacherDashboard classes={classes} />;
   }
 
-  return <div>잘못된 접근입니다.</div>;
+  return <div>?섎せ???묎렐?낅땲??</div>;
 }
+
