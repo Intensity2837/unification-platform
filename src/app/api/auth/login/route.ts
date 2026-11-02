@@ -39,8 +39,10 @@ export async function POST(request: Request) {
       message: '로그인 성공',
       user: { id: user.id, email: user.email, role: user.role, name: user.name },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error);
-    return NextResponse.json({ error: '로그인 중 오류가 발생했습니다.' }, { status: 500 });
+    return NextResponse.json({ 
+      error: '로그인 중 오류가 발생했습니다: ' + (error?.message || String(error)) 
+    }, { status: 500 });
   }
 }
